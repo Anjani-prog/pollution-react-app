@@ -1,13 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Select from "react-select";
 import { DateRangePicker } from "react-date-range";
 import { addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { fetchCities } from "../../apis";
+import { MyContext } from "../../context";
+import moment from "moment";
 
 function Dashboard() {
-  const navigate = useNavigate();
+  const { updateValue } = useContext(MyContext);
 
-  const [state, setState] = useState([
+  const navigate = useNavigate();
+  const [cities, setCities] = useState([]);
+  const [Loader, setLoader] = useState(true);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchCities()
+      .then((data) => {
+        setCities(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoader(false);
+        }, 1000);
+      });
+  }, []);
+
+  const [range, setRange] = useState([
     {
       startDate: new Date(),
       endDate: addDays(new Date(), 7),
@@ -15,37 +39,60 @@ function Dashboard() {
     },
   ]);
 
-  const dpOptions = [
-    { value: "option1", label: "Option 1" },
-    { value: "option2", label: "Option 2" },
-    { value: "option3", label: "Option 3" },
-  ];
+  const handleSelectChange = (selectedOption) => {
+    setSelectedCity(selectedOption);
+    setError("");
+  };
 
+  const Submit = () => {
+    if (selectedCity === "" || range === "") {
+      setError("City is not selected");
+    } else {
+      const newValue = {
+        city: selectedCity?.value,
+        dateFrom: moment(range[0]?.startDate).format("YYYY-MM-DD"),
+        dateTo: moment(range[0]?.endDate).format("YYYY-MM-DD"),
+      };
+      updateValue(newValue);
+
+      navigate("/graph");
+    }
+  };
   return (
-    <div className="container my-1">
+    <div className="container">
+      {Loader && (
+        <div className="overlay">
+          <div className="loader"></div>
+        </div>
+      )}
       <div>
         <div className="mb-3 text-primary fw-bold">Select City</div>
         <Select
-          options={dpOptions}
+          options={cities}
           isSearchable={true}
+          value={selectedCity}
           placeholder="Select City"
+          onChange={handleSelectChange}
         />
-        <div className="my-5">
+        {error && <div className="text-danger  mb-1">{error}</div>}
+        <div className="my-4">
           <div className="mb-3 text-primary fw-bold">Select Date Range</div>
           <DateRangePicker
-            onChange={(item) => setState([item.selection])}
+            onChange={(item) => setRange([item.selection])}
             showSelectionPreview={false}
             moveRangeOnFirstSelection={false}
             months={2}
-            ranges={state}
+            ranges={range}
             direction="horizontal"
           />
         </div>
-        <div className="d-flex justify-content-center my-1">
+
+        <div className="d-flex justify-content-center">
           {/* Button */}
           <button
             className="btn btn-primary w-100"
-            onClick={() => navigate("/graph")}
+            disabled={Loader}
+            onClick={() => Submit()}
           >
             View Pollution Graph
           </button>

@@ -24,8 +24,7 @@ const Home = () => {
             environmental patterns.
           </p>
           <p>
-            Get started by selecting a location or using the search bar to find
-            specific pollution data.
+            Get started by selecting a location to find specific pollution data.
           </p>
           <div className="d-flex justify-content-center  my-5">
             <button

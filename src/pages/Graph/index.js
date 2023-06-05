@@ -1,29 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import CanvasJSReact from "@canvasjs/react-charts";
+import { fetchMeasurementData } from "../../apis";
+import { MyContext } from "../../context";
+import noData from "../../assets/noData.jpg";
 
-//var CanvasJSReact = require('@canvasjs/react-charts');
-
-// var CanvasJS = CanvasJSReact.CanvasJS;
-var CanvasJSChart = CanvasJSReact.CanvasJSChart;
+const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 function Graph() {
+  const { value } = useContext(MyContext);
+  const [dataPoints, setDataPoints] = useState([]);
+  const [Loader, setLoader] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await fetchMeasurementData(
+          value.dateFrom,
+          value.dateTo,
+          value.city
+        );
+        setDataPoints(data);
+      } catch (error) {
+        // Handle error
+      } finally {
+        setTimeout(() => {
+          setLoader(false);
+        }, 1000);
+      }
+    };
+
+    fetchData();
+  }, [value]);
+
   const options1 = {
     theme: "light2",
-
     title: {
-      text: "Column Chart",
+      text: "Pollution Chart II",
     },
     data: [
       {
-        // Change type to "doughnut", "line", "splineArea", etc.
         type: "column",
-        dataPoints: [
-          { label: "Apple", y: 10 },
-          { label: "Orange", y: 15 },
-          { label: "Banana", y: 25 },
-          { label: "Mango", y: 30 },
-          { label: "Grape", y: 28 },
-        ],
+        dataPoints: dataPoints,
       },
     ],
   };
@@ -32,60 +49,53 @@ function Graph() {
     exportEnabled: true,
     theme: "light2",
     title: {
-      text: "Pollution Graph",
+      text: "Pollution Graph I",
     },
     axisY: {
       title: "Rate",
-      suffix: "%",
+      suffix: "",
     },
     axisX: {
       title: "Date",
       prefix: "",
-      interval: 2,
     },
     data: [
       {
         type: "line",
-        toolTipContent: "Week {x}: {y}%",
-        dataPoints: [
-          { x: 1, y: 64 },
-          { x: 2, y: 61 },
-          { x: 3, y: 64 },
-          { x: 4, y: 62 },
-          { x: 5, y: 64 },
-          { x: 6, y: 60 },
-          { x: 7, y: 58 },
-          { x: 8, y: 59 },
-          { x: 9, y: 53 },
-          { x: 10, y: 54 },
-          { x: 11, y: 61 },
-          { x: 12, y: 60 },
-          { x: 13, y: 55 },
-          { x: 14, y: 60 },
-          { x: 15, y: 56 },
-          { x: 16, y: 60 },
-          { x: 17, y: 59.5 },
-          { x: 18, y: 63 },
-          { x: 19, y: 58 },
-          { x: 20, y: 54 },
-          { x: 21, y: 59 },
-          { x: 22, y: 64 },
-          { x: 23, y: 59 },
-        ],
+        toolTipContent: "Week {x}: {y}",
+        dataPoints: dataPoints,
       },
     ],
   };
   return (
     <div className="container my-1">
-      <div className="my-5">
-        <CanvasJSChart options={options} />
-      </div>
-      <div className="my-5">
-        <CanvasJSChart
-          options={options1}
-          /* onRef={ref => this.chart = ref} */
-        />
-      </div>
+      {Loader ? (
+        <div className="overlay">
+          <div className="loader"></div>
+        </div>
+      ) : dataPoints.length > 0 ? (
+        <div>
+          <div>City:{value.city}</div>
+          <div>
+            Date:{value.dateFrom} to {value.dateTo}
+          </div>
+          <div className="my-5">
+            <CanvasJSChart options={options} />
+          </div>
+          <div className="my-5">
+            <CanvasJSChart options={options1} />
+          </div>
+        </div>
+      ) : (
+        <div className="container d-flex flex-column align-items-center justify-content-center vh-100 overflow-hidden">
+          <img
+            src={noData}
+            className="img-fluid"
+            style={{ maxHeight: "70%" }}
+            alt="layout"
+          />
+        </div>
+      )}
     </div>
   );
 }
