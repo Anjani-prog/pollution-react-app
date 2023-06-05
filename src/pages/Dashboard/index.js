@@ -8,7 +8,7 @@ import { MyContext } from "../../context";
 import moment from "moment";
 
 function Dashboard() {
-  const { updateValue } = useContext(MyContext);
+  const { updateValue, updateCities, myCities } = useContext(MyContext);
 
   const navigate = useNavigate();
   const [cities, setCities] = useState([]);
@@ -17,19 +17,28 @@ function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCities()
-      .then((data) => {
-        setCities(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-      .finally(() => {
-        setTimeout(() => {
-          setLoader(false);
-        }, 1000);
-      });
-  }, []);
+    // avoid unnecessary api call
+    if (myCities.length > 0) {
+      setCities(myCities);
+      setTimeout(() => {
+        setLoader(false);
+      }, 1000);
+    } else {
+      fetchCities()
+        .then((data) => {
+          setCities(data);
+          updateCities(data);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setTimeout(() => {
+            setLoader(false);
+          }, 1000);
+        });
+    }
+  }, [myCities, updateCities]);
 
   const [range, setRange] = useState([
     {

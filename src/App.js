@@ -14,12 +14,17 @@ import "./App.css";
 
 export default function App() {
   const [value, setValue] = useState(""); // Initial value for the context
+  const [myCities, setCities] = useState([]); // Initial value for the cities
 
   const updateValue = (newValue) => {
     setValue(newValue);
   };
+
+  const updateCities = (newValue) => {
+    setCities(newValue);
+  };
   return (
-    <MyContext.Provider value={{ value, updateValue }}>
+    <MyContext.Provider value={{ value, updateValue, myCities, updateCities }}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>

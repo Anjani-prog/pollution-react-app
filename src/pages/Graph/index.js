@@ -75,9 +75,17 @@ function Graph() {
         </div>
       ) : dataPoints.length > 0 ? (
         <div>
-          <div>City:{value.city}</div>
-          <div>
-            Date:{value.dateFrom} to {value.dateTo}
+          <div id="city" class="mb-2 text-default fw-bold">
+            City:{" "}
+            <span id="city-value" class="text-default fw-normal">
+              {value.city}
+            </span>
+          </div>
+          <div id="date" class="mb-2 text-default fw-bold">
+            Date:{" "}
+            <span id="date-value" class="text-default fw-normal">
+              {value.dateFrom} to {value.dateTo}
+            </span>
           </div>
           <div className="my-5">
             <CanvasJSChart options={options} />
